@@ -1,24 +1,27 @@
 # 怎么把这个插件发出去
 
-当前状态：`@local/dsh-deferred-ask` 是个 `private: true` 的本地包，通过 `link:` 挂在你自己的 profile 里。能装、能看，但别人装不到——包名 `@local/...` 不能发布，`private: true` 也会被 npm 拒绝。
+当前状态（2026-11-18）：
 
-想分享，要先决定走哪条路。**现在没有"官方"插件市场索引**：DSH 自带的「发现」页只是一个索引阅读器，它列出的是用户自己添加的索引源。真正有人逛的市场是社区做的 `dshmarket`，它的目录来自 GitHub 上的精选列表 `awesome-dsh-plugin`。所以"发到插件市场"实际上等于：**发布一个公开包 → 把插件条目提进那份精选列表**。
+- npm 上已有公开包 **`dsh-deferred-ask@1.0.12`**（https://www.npmjs.com/package/dsh-deferred-ask），`latest` 指向 1.0.12，13 个文件 56.4 kB。
+- 源码仓库 **https://github.com/wangyz911/dsh-deferred-ask**（公开，topics 已打 `dsh-plugin`、`deepseek`）。
+- 还差最后一步：往精选列表 `awesome-dsh-plugin` 提 PR（见第三节）。**仓库要满 24 小时才能提**，当天建的会被 CI 拒。
 
-## 一、发布前的改动
+DSH 自带的「发现」页只是一个索引阅读器，列出的是用户自己添加的索引源；真正有人逛的市场是社区做的 `dshmarket`，目录来自 GitHub 精选列表 `awesome-dsh-plugin`。所以「发到插件市场」实际等于：**发布公开包 → 把条目提进那份列表**。
 
-| 项 | 现在 | 要改成 |
-| --- | --- | --- |
-| `name` | `@local/dsh-deferred-ask` | `dsh-deferred-ask`（或你自己的 scope：`@yourname/dsh-deferred-ask`） |
-| `private` | `true` | 删掉这一行，或 `false` |
-| `license` | 无 | `MIT` 之类，并放一个 `LICENSE` 文件 |
-| `repository` | 无 | `{"type": "git", "url": "git+https://github.com/<you>/dsh-deferred-ask.git"}` |
-| `homepage` | 无 | 仓库地址即可 |
-| `keywords` | 无 | 必带 `"dsh-plugin"`，其余随意（`off-peak`、`pricing`、`queue`） |
-| `engines` | 无 | `{"dsh": ">=0.2.2-rc.3"}`（按你实际验证过的 DSH 版本写） |
+## 一、包里的必填项（已完成，改版时别弄丢）
 
-`dsh.bundle.patch` 与 `dsh.client` 已经在 `package.json` 里声明了，这是收录的硬条件之一，不用动。
+| 项 | 值 |
+| --- | --- |
+| `name` | `dsh-deferred-ask`（不带 scope；`--access public` 因此可省，但留着无害） |
+| `private` | 已删除，否则 npm 拒绝发布 |
+| `license` | `MIT` + 根目录 `LICENSE` 文件 |
+| `repository` / `homepage` / `bugs` | 都指向 GitHub 仓库 |
+| `keywords` | 必带 `dsh-plugin`，其余 `dsh`、`off-peak`、`pricing`、`queue` |
+| `engines.dsh` | `>=0.2.2-rc.3`（实际验证过的版本） |
+| `dsh.bundle.patch` | 指向根目录 `cordis.patch.yml`，收录的硬条件 |
+| `files` | 含 `docs` 与 `README.md`，漏了 `docs` 详情页就会报文件缺失 |
 
-改名的副作用：你 profile 里那行 `"@local/dsh-deferred-ask": "link:..."` 和 `dsh.profile.bundles` 里的同名条目都要跟着改，否则桌面端下次启动会找不到插件。想两边都留着，就等发布成功后再切换。
+`cordis.patch.yml` 里的 `name` 必须和 `package.json` 的包名完全一致（这里是 `dsh-deferred-ask`），否则从 npm 或源码安装后加载会失败——这是改名时最容易漏的一处。
 
 打包前自查：
 
@@ -26,42 +29,53 @@
 npm pack --dry-run
 ```
 
-列表里应当出现 `index.js`、`client.js`、`cordis.patch.yml`、`icon.svg`、`locale/*.json`、`docs/DETAIL.md`、`docs/DETAIL.zh.md`、`docs/preview.svg`、`README.md`。`files` 里已经有了 `docs` 和 `README.md`；漏了 `docs` 的话，插件详情页会报文件缺失。
+应当出现 13 个文件：`LICENSE`、`README.md`、`README.zh.md`、`client.js`、`cordis.patch.yml`、`docs/DETAIL.md`、`docs/DETAIL.zh.md`、`docs/preview.svg`、`icon.svg`、`index.js`、`locale/en.json`、`locale/zh.json`、`package.json`。
 
-## 二、发布
+## 二、发版
+
+本机没有全局 node/npm，用工作区里的便携版：
 
 ```sh
-npm publish --access public
+NODE_DIR="C:/Users/yizhouw/Documents/deepseek-harness/default-workspace/.work/tools/node-v26.13.1-win-x64"
+export npm_config_cache="C:/Users/yizhouw/Documents/deepseek-harness/default-workspace/.work/npm-cache"
+export NPM_CONFIG_USERCONFIG="C:/Users/yizhouw/Documents/deepseek-harness/default-workspace/.work/npmrc"
+cd C:/Users/yizhouw/dsh-plugins/dsh-deferred-ask
+"$NODE_DIR/node.exe" "$NODE_DIR/node_modules/npm/bin/npm-cli.js" version patch
+"$NODE_DIR/node.exe" "$NODE_DIR/node_modules/npm/bin/npm-cli.js" publish --access public --otp=<码>
 ```
 
-如果是 scope 包，`--access public` 不能省，否则发布出去仍是私有。发布完再去 GitHub 建一个**公开**仓库，同一份代码推上去，并给仓库打上 **`dsh-plugin`** topic（收录条件之一）。
+账号 `yizhouw` 的 2FA 只有**安全密钥**（`NPM_Happy_1992`，无 Authenticator），命令行没法自己扫码。做法：先跑一次 `publish` 拿到 `npm-notice` 里的 `https://www.npmjs.com/login/<uuid>`，在浏览器用安全密钥确认后页面会给一个 16 位 one-time password，再用 `--otp=<那串数字>` 重跑即可。
+
+注意两点：`npm_config_cache` 一定要指到工作区，默认缓存目录会报 `EPERM ... _cacache\tmp`；发布后 registry 有几分钟「processing」，期间 `dsh-deferred-ask` 只显示占位版本 `0.0.0-stage`，等 `latest` 变成新版本号才算真正可用。
 
 ## 三、收录进市场
 
-市场里的列表由 `awesome-dsh-plugin/awesome-dsh-plugin` 仓库维护。做法是往 `data/plugins/` 下加**一个** YAML 文件，文件名 `<owner>__<repo>.yml`，形如 `yourname__dsh-deferred-ask.yml`：
+列表由 `awesome-dsh-plugin` 仓库维护：往 `data/plugins/` 下加**一个** YAML，文件名 `<owner>__<repo>.yml`，例如 `wangyz911__dsh-deferred-ask.yml`：
 
 ```yaml
-url: https://github.com/yourname/dsh-deferred-ask
-name: yourname/dsh-deferred-ask
+url: https://github.com/wangyz911/dsh-deferred-ask
+name: wangyz911/dsh-deferred-ask
 category: workflow
 description:
   en: 'Queues questions written in the composer and sends them only while DeepSeek bills at off-peak rates, with delivery driven by a 30-second clock check instead of a pre-scheduled trigger. Up to 50 items, localStorage persistence, retry with backoff, and a one-click send-now at peak price.'
   zh: '把输入框里的问题排进队列，只在 DeepSeek 低谷计价时段（半价）发出；不在入队时排死触发时间，而是每 30 秒确认处于低谷后才投递下一次，避开错过任务的补投落进高峰。最多 50 条、localStorage 持久化、失败指数退避重试，也可按高峰价立即发送。'
 ```
 
-提交成 PR 即可。CI 会检查这些硬指标：
+提交成 PR 即可。CI 的硬指标：
 
-- 仓库里**至少一天**的历史（当天建的仓库会被拒，隔天自动重跑，不用重新提交）；
-- `package.json` 声明了 `dsh.bundle`（本插件已满足）；
+- 仓库**至少一天**历史（当天建会被拒，隔天不过期重跑即可，不用关 PR）；
+- `package.json` 声明 `dsh.bundle`；
 - 仓库带 `dsh-plugin` topic；
-- `category` 是列表认可的值（已见 `workflow`、`education`、`fun`；以仓库的 `contributing.md` 为准，本插件建议 `workflow`）；
-- 描述只讲**做什么**，不要形容词堆砌。
+- `category` 是列表认可的值（已见 `workflow`、`education`、`fun`，以仓库 `contributing.md` 为准）；
+- 描述只讲**做什么**，不要堆形容词。
 
-合并后站点和 `dshmarket` 会自动收录，通常一天内生效。
+注意文件名和放的位置：目录是 `data/plugins/`，仓库根目录下同名的旧文件不算数。
+
+合并后站点与 `dshmarket` 一天内自动收录。
 
 ## 四、顺便：给原生「发现」页用的索引
 
-不想进精选列表、只想让朋友手动添加的话，也可以自己维护一份 format 1 索引，托管到任意 https 静态地址（`raw.githubusercontent.com` 或 jsDelivr 都行；索引 URL 不允许重定向）：
+不想进精选列表、只想让朋友手动添加的话，可以自己维护一份 format 1 索引，托管到任意 https 静态地址（`raw.githubusercontent.com` 或 jsDelivr 都行；索引 URL 不允许重定向）：
 
 ```json
 {
@@ -78,13 +92,13 @@ description:
       "name": "dsh-deferred-ask",
       "title": { "en": "Deferred ask", "zh": "低谷待发" },
       "description": { "en": "Queue a question and send it off-peak.", "zh": "把问题排到低谷时段再发。" },
-      "author": "yourname",
-      "homepage": "https://github.com/yourname/dsh-deferred-ask",
-      "repository": { "url": "https://github.com/yourname/dsh-deferred-ask" },
+      "author": "wangyz911",
+      "homepage": "https://github.com/wangyz911/dsh-deferred-ask",
+      "repository": { "url": "https://github.com/wangyz911/dsh-deferred-ask" },
       "metadata": { "category": "workflow", "keywords": ["dsh-plugin"], "labels": [], "sortKeys": {} },
       "versions": [
         {
-          "version": "1.0.13",
+          "version": "1.0.12",
           "publishTimestamp": 1763510400,
           "source": { "type": "npm" },
           "engines": { "dsh": ">=0.2.2-rc.3" }
@@ -95,12 +109,12 @@ description:
 }
 ```
 
-几个校验器会咬人的点：`title`/`description` 给对象时必须含 `en`；`publishTimestamp` 是 Unix 秒；版本按 SemVer 降序、不可重复；Git 来源的 `commit` 必须是 40 位小写十六进制；`metadata.category` 引用的分类 id 必须先在索引的 `metadata.categories` 里声明过（模板里已经声明了 `workflow`，要加别的分类就照抄一行）。索引里的 `name` 要和 npm 上的包名一致，否则安装参数拼不出来。
+校验器会咬人的点：`title`/`description` 给对象时**必须含 `en`**；`publishTimestamp` 是 Unix 秒；版本按 SemVer 降序、不可重复；Git 来源的 `commit` 必须是 40 位小写十六进制；`metadata.category` 引用的分类 id 必须先在索引的 `metadata.categories` 里声明过。索引里的 `name` 要和 npm 包名一致，否则安装参数拼不出来。
 
 用户添加方式：**插件 → 发现 → 索引源**，粘贴这份 JSON 的 URL。
 
 ## 五、发出去之后
 
-- 每个版本的详情页读的都是包里的 `locale/*.json` 与 `docs/`，所以以后改文案要重新发版，不是改索引。
-- 记得同步 README 与 `docs/preview.svg`——条目页在没有 `meta.detail` 时会回退到 README，两者不一致会显得敷衍。
-- 用户装了之后，更新走他们自己的包管理器或市场的更新按钮；从 Git 提交装的副本只会在同一仓库同一目录内更新。
+- 每个版本的详情页读的都是包里的 `locale/*.json` 与 `docs/`，所以改文案要**重新发版**，改索引没用。npm 版本的文件走 jsDelivr / unpkg / npmmirror 读取，已验证 `https://cdn.jsdelivr.net/npm/dsh-deferred-ask@1.0.12/docs/DETAIL.md` 返回 200。
+- 记得同步 README 与 `docs/preview.svg`：条目页在 `meta.detail` 失效时会回退到 README，两者不一致会显得敷衍。
+- 用户装好之后的更新，来自他们自己的包管理器或市场按钮；从 Git 提交装的副本只会在同一仓库同一目录内更新。
