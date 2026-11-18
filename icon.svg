@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Deferred ask">
+  <g fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 10a22 22 0 1 0 15.6 37.6" />
+    <path d="M32 20v12l8.5 5.5" />
+  </g>
+  <circle cx="32" cy="10" r="3.4" fill="currentColor" />
+  <path d="M45.5 13.2a9.5 9.5 0 1 0 8.2 14.6 7.6 7.6 0 0 1-8.2-14.6z" fill="currentColor" opacity="0.75" />
+</svg>

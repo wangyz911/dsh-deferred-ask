@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Deferred ask",
+    "description": "Queues questions written in the composer and sends them only while DeepSeek bills at off-peak rates, half the peak price. Press Ctrl+Enter, or click \"Defer to off-peak\", and the question waits in the bar under the composer; the panel lists every queued item with buttons to send one now at peak price, delete it, or clear the queue, and keeps up to 50 items across reloads. As soon as the off-peak window opens, a queued question is delivered within 30 seconds to a new session by default, or to the current one when \"Continue in this session\" is chosen, retrying with backoff if delivery fails. Delivery is never pre-scheduled, so a run missed while DSH was closed is never replayed into a peak window. Peak is Mon-Fri 09:00-12:00 and 14:00-18:00 in Asia/Shanghai; weekends and Chinese public holidays are off-peak all day. Limits: DSH must be running when the window opens; the discount applies to per-token billing, not to a flat subscription; holidays are not on a calendar, so one is treated as a weekday (delivery is later, never more expensive); and a new session starts without history, so make each queued question self-contained.",
+    "detail": "docs/DETAIL.md"
+  }
+}

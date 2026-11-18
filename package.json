@@ -1,0 +1,54 @@
+{
+  "name": "dsh-deferred-ask",
+  "version": "1.0.12",
+  "description": "Queue questions from the composer and deliver them only during DeepSeek off-peak pricing windows.",
+  "keywords": [
+    "dsh-plugin",
+    "dsh",
+    "off-peak",
+    "pricing",
+    "queue"
+  ],
+  "license": "MIT",
+  "author": "Yizhou Wang",
+  "homepage": "https://github.com/wangyz911/dsh-deferred-ask#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wangyz911/dsh-deferred-ask.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wangyz911/dsh-deferred-ask/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "docs",
+    "icon.svg",
+    "README.md"
+  ],
+  "engines": {
+    "dsh": ">=0.2.2-rc.3",
+    "node": ">=20"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  }
+}
