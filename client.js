@@ -12,7 +12,7 @@
  * only then creates a schedule that fires 5 seconds later.
  */
 window.__ModuleLoader__.load({
-  id: '@local/dsh-deferred-ask',
+  id: 'dsh-deferred-ask',
   factory(require) {
     const React = require('react');
     const h = React.createElement;
