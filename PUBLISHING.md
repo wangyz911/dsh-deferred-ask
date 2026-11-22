@@ -26,8 +26,11 @@ DSH 自带的「发现」页只是一个索引阅读器，列出的是用户自�
 打包前自查：
 
 ```sh
+node scripts/check-bundle-names.mjs   # client.js 的 id、cordis.patch.yml 的 name、包名必须一致
 npm pack --dry-run
 ```
+
+第一条已挂在 `prepublishOnly` 上，`npm publish` 会先跑它：不一致就直接中止，不会把「装了但不生效」的包发出去。1.0.12 就是这么发出去的——`client.js` 的 id 还留着模板时代的 `@local/dsh-deferred-ask`，而包名是 `dsh-deferred-ask`，DSH 的 client-modules 拒绝加载，界面上什么都不显示，Host 侧却仍报 `fiberPhase: active`。
 
 应当出现 13 个文件：`LICENSE`、`README.md`、`README.zh.md`、`client.js`、`cordis.patch.yml`、`docs/DETAIL.md`、`docs/DETAIL.zh.md`、`docs/preview.svg`、`icon.svg`、`index.js`、`locale/en.json`、`locale/zh.json`、`package.json`。
 

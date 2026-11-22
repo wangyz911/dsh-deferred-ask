@@ -1,6 +1,6 @@
 {
   "name": "dsh-deferred-ask",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Queue questions from the composer and deliver them only during DeepSeek off-peak pricing windows.",
   "keywords": [
     "dsh-plugin",
@@ -38,6 +38,9 @@
   "engines": {
     "dsh": ">=0.2.2-rc.3",
     "node": ">=20"
+  },
+  "scripts": {
+    "prepublishOnly": "node scripts/check-bundle-names.mjs"
   },
   "dsh": {
     "bundle": {
