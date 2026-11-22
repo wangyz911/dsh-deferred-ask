@@ -10,6 +10,11 @@ Queue a question from the composer and let DSH send it only while DeepSeek bills
 
 Write the question you would otherwise ask now, press `Ctrl+Enter`, and it waits. When the off-peak window opens, the question is delivered on its own, so nothing is left to remember at 22:00.
 
+> [!WARNING]
+> **The package on npm is `1.0.12`, and it installs but never appears.** Its browser bundle registers itself under `@local/dsh-deferred-ask` instead of the package name, and DSH's `client-modules` refuses to load an entry whose factory id does not match — so the bar under the composer never renders. The Host half is an empty `apply()`, which is why the Plugins page still reports **active** and the failure stays silent.
+>
+> `1.0.13` in the repository fixes it and cannot regress: `prepublishOnly` runs `scripts/check-bundle-names.mjs` and refuses to publish when the three names disagree. Until the version on npm catches up, [install from the repository](#install).
+
 ## Why it waits instead of scheduling ahead
 
 DSH replays a scheduled task's missed occurrence on the next launch, and only the latest one. If the trigger were pinned at enqueue time (`timing: {kind: 'at'}`), that catch-up delivery could easily land inside a peak window and bill at full price.
@@ -46,9 +51,39 @@ No holiday calendar is bundled, so a public holiday is treated as an ordinary we
 
 ## Install
 
+Until `1.0.13` reaches the registry, install the repository — that source already carries the fix:
+
+```sh
+dsh plugin --profile <profile> add github:wangyz911/dsh-deferred-ask
+```
+
+Once the registry serves `1.0.13`, the plain package name works the same way:
+
 ```sh
 dsh plugin --profile <profile> add dsh-deferred-ask
 ```
+
+### Already installed `1.0.12`?
+
+The bar never appears because the browser entry fails to load. Switching the source fixes it and replaces the npm copy in the profile:
+
+```sh
+dsh plugin --profile <profile> add github:wangyz911/dsh-deferred-ask
+```
+
+If you would rather keep the npm copy, exactly one line is wrong. In your profile's `node_modules/dsh-deferred-ask/client.js`, line 15 reads
+
+```js
+  id: '@local/dsh-deferred-ask',
+```
+
+and must read
+
+```js
+  id: 'dsh-deferred-ask',
+```
+
+The client watcher reloads the bundle within a second, so no restart is needed.
 
 For a local checkout, add it as a link instead:
 
@@ -62,6 +97,7 @@ The bundle then appears in **Plugins** as **Deferred ask**; the bar shows up und
 
 For DSH plugin authors, the parts that are easy to get wrong:
 
+- The browser artifact's `__ModuleLoader__.load({ id })` must equal the package name. A mismatch is not a warning — `client-modules` drops the whole entry with `loaded without registering "<name>" via __ModuleLoader__.load`, and when the Host half is a no-op `apply()` nothing else fails, so the plugin still looks **active** in the Plugins page while rendering nothing. `scripts/check-bundle-names.mjs` (wired into `prepublishOnly`) exists to make that unshippable.
 - `inject` must list nested services in full — `['slots', 'locale', 'remote', 'remote.schedule', 'remote.session']`. Writing only `remote` fails later with `without inject` when `remote.schedule` is read.
 - The working folder has three sources: the `workspaces` snapshot (`items[].sessionIds` plus `WorkspaceView.path`), `ctx.remote.session.list()`'s `SessionSummary.cwd`, and the pinned folder in `localStorage` (`dsh.deferredAsk.target.v1`). Either of the first two can be empty for some sessions, so the third exists.
 - The picker has three states: no key means automatic, `{"path": ""}` means follow the current session (**overriding** automatic resolution), and `{"path": "D:\\..."}` pins a folder. An early version read the empty string as "no pin" and kept opening new sessions.
@@ -70,4 +106,4 @@ For DSH plugin authors, the parts that are easy to get wrong:
 
 ## License
 
-Not yet chosen. Add a `LICENSE` file (MIT is the usual default for DSH plugins) before publishing the package.
+MIT — see [LICENSE](LICENSE).

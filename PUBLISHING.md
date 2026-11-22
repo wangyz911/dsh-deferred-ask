@@ -1,8 +1,9 @@
 # 怎么把这个插件发出去
 
-当前状态（2026-11-18）：
+当前状态（2026-11-22）：
 
 - npm 上已有公开包 **`dsh-deferred-ask@1.0.12`**（https://www.npmjs.com/package/dsh-deferred-ask），`latest` 指向 1.0.12，13 个文件 56.4 kB。
+- ⚠️ **1.0.12 不可用**：`client.js` 的 bundle id 还留着 `@local/dsh-deferred-ask`，装后界面全无（详见下文「打包前自查」）。仓库 `main` 上的 **1.0.13 已修复**并加了 `prepublishOnly` 守门，但**尚未发布到 npm** —— 发 `1.0.13` 是目前的第一优先级。
 - 源码仓库 **https://github.com/wangyz911/dsh-deferred-ask**（公开，topics 已打 `dsh-plugin`、`deepseek`）。
 - 还差最后一步：往精选列表 `awesome-dsh-plugin` 提 PR（见第三节）。**仓库要满 24 小时才能提**，当天建的会被 CI 拒。
 

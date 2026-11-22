@@ -10,6 +10,11 @@
 
 原本想现在问的问题，写完按 `Ctrl+Enter` 就放着；晚上十点不必再靠记性把它捞回来。
 
+> [!WARNING]
+> **npm 上的 `1.0.12` 装上后什么都不显示。** 它的浏览器端 bundle 把自己注册成了 `@local/dsh-deferred-ask`，而 DSH 的 `client-modules` 要求工厂 id 与包名一致，不一致就整个条目丢弃 —— 输入框下方那条栏因此永远不会渲染。Host 侧是个空的 `apply()`，所以插件页照样显示**已启用**，故障完全静默。
+>
+> 仓库里的 `1.0.13` 已修好且不会再退化：`prepublishOnly` 会跑 `scripts/check-bundle-names.mjs`，三处名字不一致就拒绝发布。在 npm 上的版本追上来之前，请看[从仓库安装](#安装)。
+
 ## 为什么是「到点才投递」
 
 DSH 的定时任务在应用关闭期间错过的 occurrence，只会在下次启动时补投最近一次。如果入队时就把触发时间排死（`timing: {kind: 'at'}`），某次开机补投很可能落在高峰窗口，反而按全价计费。
@@ -46,9 +51,39 @@ DSH 的定时任务在应用关闭期间错过的 occurrence，只会在下次�
 
 ## 安装
 
+在 `1.0.13` 上架 npm 之前，从仓库安装 —— 那边已经是修好的：
+
+```sh
+dsh plugin --profile <profile> add github:wangyz911/dsh-deferred-ask
+```
+
+等 registry 上有 `1.0.13` 了，直接写包名也一样：
+
 ```sh
 dsh plugin --profile <profile> add dsh-deferred-ask
 ```
+
+### 已经装了 `1.0.12` 怎么办
+
+界面不出现，是因为浏览器端入口加载失败。把来源换掉即可修好，profile 里那份 npm 副本会被替换：
+
+```sh
+dsh plugin --profile <profile> add github:wangyz911/dsh-deferred-ask
+```
+
+想留着 npm 那份也行，错的只有一行。profile 里 `node_modules/dsh-deferred-ask/client.js` 第 15 行现在是
+
+```js
+  id: '@local/dsh-deferred-ask',
+```
+
+应改成
+
+```js
+  id: 'dsh-deferred-ask',
+```
+
+客户端 watcher 会在一秒内重新加载，不用重启。
 
 本地开发时用软链：
 
@@ -62,6 +97,7 @@ dsh plugin --profile <profile> add link:C:/path/to/dsh-deferred-ask
 
 给写 DSH 插件的人，几处容易踩的地方：
 
+- 浏览器产物的 `__ModuleLoader__.load({ id })` 必须等于包名。不一致不是警告级问题：`client-modules` 会整条丢弃，报 `loaded without registering "<包名>" via __ModuleLoader__.load`；而 Host 侧若是个空的 `apply()`，插件页仍显示**已启用**，界面却什么都不出 —— 排查时极易误判成槽位或权限问题。仓库里的 `scripts/check-bundle-names.mjs`（挂在 `prepublishOnly`）就是为了让这种包发不出去。
 - `inject` 必须写成 `['slots', 'locale', 'remote', 'remote.schedule', 'remote.session']`：DSH 里嵌套服务要列全名，只写 `remote` 会在取 `remote.schedule` 时报 `without inject`。
 - 工作目录有三条来源：`workspaces` 快照的 `items[].sessionIds` + `WorkspaceView.path`；`ctx.remote.session.list()` 里 `SessionSummary.cwd`；面板下拉（存 `localStorage` 的 `dsh.deferredAsk.target.v1`）。实测前两条在部分会话上都可能为空，所以必须有第三条。
 - 下拉的三态要分清：**没有 key** = 未固定（用自动解析结果）、`{"path": ""}` = 明确要求续在本会话（**覆盖**自动解析结果）、`{"path": "D:\\..."}` = 固定到某个目录。早期版本把「空字符串」当成「没固定」，于是选了「续在本会话」仍被自动解析出的目录覆盖，仍会新开会话。
@@ -70,4 +106,4 @@ dsh plugin --profile <profile> add link:C:/path/to/dsh-deferred-ask
 
 ## 许可
 
-尚未选定。发布前请补一个 `LICENSE` 文件（DSH 插件通常用 MIT）。
+MIT，见 [LICENSE](LICENSE)。
